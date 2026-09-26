@@ -1,0 +1,93 @@
+{
+  "changeproof_schema_version": "1.0",
+  "generated_at": "2025-07-10T00:00:00Z",
+  "repository": "ChangeProof",
+  "diff_summary": {
+    "changed_file": "services/payment_service.py",
+    "diff": "--- a/services/payment_service.py\n+++ b/services/payment_service.py\n@@ -2,6 +2,5 @@ def create_payment_event(...):\n     return {\n         \"payment_id\": payment_id,\n-        \"amount\": amount,\n-        \"tenant_id\": tenant_id\n+        \"amount\": amount\n     }"
+  },
+  "overall_verdict": "BLOCK",
+  "overall_risk_level": "CRITICAL",
+  "agents": {
+    "code_usage_tracer": {
+      "agent": "code_usage_tracer",
+      "changed_file": "services/payment_service.py",
+      "changed_symbol": "create_payment_event",
+      "removed_keys": ["tenant_id"],
+      "callers": [
+        {
+          "file": "tests/test_payment.py",
+          "line": 5,
+          "consumes_removed_key": false,
+          "snippet": "event = create_payment_event(\"pay_123\", 99.99, \"tenant_corp\")"
+        }
+      ],
+      "risk_level": "LOW",
+      "summary": "tenant_id key removed from create_payment_event return dict; only caller is test that never consumes the removed key."
+    },
+    "adr_invariant_checker": {
+      "agent": "adr_invariant_checker",
+      "adrs_evaluated": [
+        {
+          "adr_id": "ADR-042",
+          "title": "Multi-Tenant Payment Isolation",
+          "status": "Accepted",
+          "invariants_found": [
+            "Every payment authorization event MUST include the originating tenant_id in its root payload for multi-tenant billing isolation and regulatory compliance."
+          ],
+          "violated": true,
+          "violated_by": "Removal of 'tenant_id' key from return dict in create_payment_event() function",
+          "severity": "CRITICAL"
+        }
+      ],
+      "total_violations": 1,
+      "risk_level": "CRITICAL",
+      "summary": "The removal of tenant_id from the payment event payload directly violates ADR-042's mandatory requirement for multi-tenant payment isolation."
+    },
+    "test_assertion_auditor": {
+      "agent": "test_assertion_auditor",
+      "test_file": "tests/test_payment.py",
+      "test_functions": [
+        {
+          "name": "test_create_payment_event",
+          "assertions": [
+            { "line": 6, "checks_key": "payment_id", "passes_with_broken_code": true },
+            { "line": 7, "checks_key": "amount",     "passes_with_broken_code": true },
+            { "line": 8, "checks_key": "not None",   "passes_with_broken_code": true }
+          ],
+          "asserts_tenant_id": false,
+          "verdict": "FALSE_GREEN"
+        }
+      ],
+      "pytest_result": "PASSED",
+      "pytest_output": "1 passed in 0.10s — tests/test_payment.py::test_create_payment_event PASSED",
+      "coverage_gap": "No assertion checks for the 'tenant_id' key in the returned dict. The removal of 'tenant_id' from the payload is completely invisible to the test suite; all three assertions target unrelated keys ('payment_id', 'amount') or a null-check.",
+      "recommended_assertion": "assert event[\"tenant_id\"] == \"tenant_corp\"",
+      "risk_level": "CRITICAL",
+      "summary": "The sole test function never asserts 'tenant_id', producing a FALSE GREEN — pytest passes 1/1 even though the ADR-mandated 'tenant_id' field has been silently dropped from the payment event payload."
+    }
+  },
+  "findings": [
+    {
+      "id": "CP-001",
+      "type": "ADR_VIOLATION",
+      "severity": "CRITICAL",
+      "adr_ref": "ADR-042",
+      "file": "services/payment_service.py",
+      "symbol": "create_payment_event",
+      "description": "tenant_id key removed from payment event return payload, directly violating ADR-042 MUST requirement for multi-tenant billing isolation.",
+      "remediation": "Restore 'tenant_id': tenant_id to the return dict in create_payment_event."
+    },
+    {
+      "id": "CP-002",
+      "type": "TEST_COVERAGE_GAP",
+      "severity": "CRITICAL",
+      "adr_ref": "ADR-042",
+      "file": "tests/test_payment.py",
+      "symbol": "test_create_payment_event",
+      "description": "Test suite produces a FALSE GREEN — pytest passes with 1/1 despite the ADR contract being broken because no assertion covers tenant_id.",
+      "remediation": "Add: assert event[\"tenant_id\"] == \"tenant_corp\" to test_create_payment_event."
+    }
+  ],
+  "recommendation": "BLOCK this change. Two CRITICAL findings: (1) direct ADR-042 violation — tenant_id silently removed from payment event payload; (2) test suite false green — no test asserts tenant_id, masking the regression entirely."
+}

@@ -1,0 +1,100 @@
+{
+  "commit": "HEAD",
+  "summary": {
+    "total_findings": 2,
+    "violations": 2,
+    "verified": 0,
+    "unverified": 0,
+    "unknown": 0
+  },
+  "findings": [
+    {
+      "id": "RULE-PAYMENT-001",
+      "epistemic_tier": "VIOLATION",
+      "primary_location": {
+        "file": "services/payment_service.py",
+        "line": 4
+      },
+      "code_evidence": {
+        "modified_symbol": "create_payment_event",
+        "changed_keys": {
+          "deleted": [
+            "condition",
+            "amount",
+            "tenant_id"
+          ],
+          "added": [
+            "condition",
+            "ssn",
+            "amount"
+          ],
+          "key_lines": {
+            "condition": 5,
+            "ssn": 7,
+            "amount": 4,
+            "tenant_id": 4
+          }
+        },
+        "violation_direction": "DELETED"
+      },
+      "document_evidence": {
+        "rule_found": true,
+        "source_file": "docs/adr/ADR-042-payment-isolation.md",
+        "source_line": 5,
+        "invariant_text": "Every payment authorization event MUST include the originating tenant_id in its root payload for multi-tenant billing isolation and regulatory compliance.",
+        "violation_detected": true,
+        "violation_reason": "Field 'tenant_id' was removed from payload, violating documented invariant."
+      },
+      "test_evidence": {
+        "test_file": "tests/test_payment.py",
+        "test_suite_status": "PASSED",
+        "assertion_covers_rule": false,
+        "unverified_reason": "AST confirms 'tenant_id' has 0 assertion checks in tests/test_payment.py."
+      }
+    },
+    {
+      "id": "RULE-PATIENT-001",
+      "epistemic_tier": "VIOLATION",
+      "primary_location": {
+        "file": "services/patient_service.py",
+        "line": 7
+      },
+      "code_evidence": {
+        "modified_symbol": "export_patient_summary",
+        "changed_keys": {
+          "deleted": [
+            "condition",
+            "amount",
+            "tenant_id"
+          ],
+          "added": [
+            "condition",
+            "ssn",
+            "amount"
+          ],
+          "key_lines": {
+            "condition": 5,
+            "ssn": 7,
+            "amount": 4,
+            "tenant_id": 4
+          }
+        },
+        "violation_direction": "ADDED"
+      },
+      "document_evidence": {
+        "rule_found": true,
+        "source_file": "docs/adr/ADR-089-hipaa-phi-sanitization.md",
+        "source_line": 5,
+        "invariant_text": "Every exported patient medical summary MUST sanitize or completely omit the `ssn` and `date_of_birth` fields from the exported payload dictionary prior to broadcast.",
+        "violation_detected": true,
+        "violation_reason": "Field 'ssn' was added to payload, violating documented invariant."
+      },
+      "test_evidence": {
+        "test_file": "tests/test_patient.py",
+        "test_suite_status": "PASSED",
+        "assertion_covers_rule": false,
+        "unverified_reason": "AST confirms 'ssn' has 0 assertion checks in tests/test_patient.py."
+      }
+    }
+  ]
+}
