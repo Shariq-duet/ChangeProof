@@ -2,6 +2,5 @@
     # Baseline compliant event payload
     return {
         "payment_id": payment_id,
-        "amount": amount,
-        "tenant_id": tenant_id
+        "amount": amount
     }
