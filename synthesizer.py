@@ -8,8 +8,9 @@ from schemas import ChangeProofReport, Finding, DocumentEvidence, CodeEvidence, 
 
 # Map ADR filenames to their associated service/test files
 ADR_SERVICE_MAP = {
-    "ADR-042-payment-isolation.md":    ("services/payment_service.py",  "tests/test_payment.py",  "create_payment_event",  "RULE-PAYMENT-001"),
-    "ADR-089-hipaa-phi-sanitization.md": ("services/patient_service.py", "tests/test_patient.py",  "export_patient_summary", "RULE-PATIENT-001"),
+    "ADR-042-payment-isolation.md":      ("services/payment_service.py",  "tests/test_payment.py",   "create_payment_event",   "RULE-PAYMENT-001"),
+    "ADR-089-hipaa-phi-sanitization.md": ("services/patient_service.py",  "tests/test_patient.py",   "export_patient_summary", "RULE-PATIENT-001"),
+    "ADR-101-webhook-integrity.md":      ("services/webhook_service.py",  "tests/test_webhook.py",   "dispatch_webhook",       "RULE-WEBHOOK-001"),
 }
 
 def extract_diff_keys(diff_text: str) -> Dict[str, Any]:
